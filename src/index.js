@@ -10,11 +10,31 @@ if (require('electron-squirrel-startup')) {
 
 let store; // We'll assign this after dynamic import
 
-// Function to dynamically import 'electron-store' and initialize the app
+// Function to dynamically import modules and initialize the app
 (async () => {
   // Dynamically import 'electron-store'
   const { default: Store } = await import('electron-store');
   store = new Store();
+
+  // Dynamically import 'node-fetch' and 'metascraper' modules
+  const { default: fetch } = await import('node-fetch');
+  const metascraper = (await import('metascraper')).default;
+  const metascraperUrl = (await import('metascraper-url')).default;
+  const metascraperTitle = (await import('metascraper-title')).default;
+  const metascraperYoutube = (await import('metascraper-youtube')).default;
+  const metascraperTwitter = (await import('metascraper-twitter')).default;
+  const metascraperInstagram = (await import('metascraper-instagram')).default;
+  // Removed metascraper-facebook as it's no longer available
+
+  // Initialize metascraper with plugins
+  const metascraperInstance = metascraper([
+    metascraperUrl(),
+    metascraperTitle(),
+    metascraperYoutube(),
+    metascraperTwitter(),
+    metascraperInstagram(),
+    // Add more metascraper modules as needed
+  ]);
 
   const createWindow = () => {
     const mainWindow = new BrowserWindow({
@@ -80,8 +100,8 @@ let store; // We'll assign this after dynamic import
               id: index + 1,
               title: path.basename(file, ext),
               content: content,
-              extension: ext, // Store the file extension
-              modifiedTime: stats.mtime, // Store the modified time
+              extension: ext,
+              modifiedTime: stats.mtime,
             });
           }
         });
@@ -155,6 +175,27 @@ let store; // We'll assign this after dynamic import
     ipcMain.handle('open-external-link', async (event, url) => {
       console.log('IPC: open-external-link called with URL:', url);
       shell.openExternal(url);
+    });
+
+    // Fetch metadata for a URL
+    ipcMain.handle('fetch-url-metadata', async (event, url) => {
+      console.log('IPC: fetch-url-metadata called with URL:', url);
+      try {
+        const response = await fetch(url);
+        const html = await response.text();
+        const metadata = await metascraperInstance({ html, url });
+
+        console.log('Metadata fetched:', metadata);
+
+        if (metadata.title) {
+          return { title: metadata.title };
+        } else {
+          return { title: null };
+        }
+      } catch (error) {
+        console.error('Error fetching metadata:', error);
+        return { title: null };
+      }
     });
 
     // Re-create a window in the app when the dock icon is clicked (macOS).

@@ -138,7 +138,7 @@ function hideLinkPopup() {
   linkPopup.style.width = ''; // Reset the width
 }
 
-// Function to parse the content and convert links, emails, and handle '--'
+// Function to parse the content and convert links, emails, and '--'
 function parseContent() {
   // Save the current selection
   const selection = window.getSelection();
@@ -282,14 +282,75 @@ function loadNotesFromDirectory() {
     .then((loadedNotes) => {
       console.log('Notes loaded:', loadedNotes);
       notes = loadedNotes;
-      loadNotes();
+
+      loadNotes(); // Display notes immediately
+
+      // Fetch metadata for notes asynchronously
+      fetchMetadataForNotes();
     })
     .catch((error) => {
       console.error('Error loading notes:', error);
     });
 }
 
-// Load notes into the sidebar
+// Function to fetch metadata for notes
+function fetchMetadataForNotes() {
+  notes.forEach((note) => {
+    fetchMetadataForNote(note);
+  });
+}
+
+// Function to fetch metadata for a single note
+async function fetchMetadataForNote(note) {
+  try {
+    console.log(`Fetching metadata for note ${note.id}`);
+    // Extract URLs from the note content
+    const urls = extractUrls(note.content);
+
+    if (urls.length > 0) {
+      console.log(`Note ${note.id} has URLs:`, urls);
+      // Fetch metadata for the first URL
+      const metadata = await window.electronAPI.fetchUrlMetadata(urls[0]);
+
+      if (metadata.title) {
+        note.displayTitle = metadata.title;
+      } else if (isPrivatePostUrl(urls[0])) {
+        note.displayTitle = `This ${getPlatformName(urls[0])} post is private`;
+      } else {
+        note.displayTitle = note.title; // Use original title
+      }
+
+      // Update the note in the sidebar
+      updateNoteInSidebar(note);
+    } else {
+      note.displayTitle = note.title; // Use original title
+    }
+  } catch (error) {
+    console.error(`Error fetching metadata for note ${note.id}:`, error);
+    note.displayTitle = note.title; // Use original title on error
+  }
+}
+
+// Function to update a note in the sidebar
+function updateNoteInSidebar(note) {
+  const noteListItem = document.querySelector(`#note-list li[data-note-id='${note.id}']`);
+  if (noteListItem) {
+    noteListItem.textContent = `${note.displayTitle || note.title} (${formatDate(note.modifiedTime)})`;
+    noteListItem.onclick = () => {
+      openNote(note.id);
+      // Remove 'active' class from all list items
+      document.querySelectorAll('#note-list li').forEach((item) => item.classList.remove('active'));
+      // Add 'active' class to the clicked item
+      noteListItem.classList.add('active');
+    };
+    // Re-apply 'active' class if needed
+    if (note.id === currentNoteId) {
+      noteListItem.classList.add('active');
+    }
+  }
+}
+
+// Function to load notes into the sidebar
 function loadNotes() {
   console.log('Loading notes into sidebar...');
   const noteList = document.getElementById('note-list');
@@ -297,8 +358,11 @@ function loadNotes() {
 
   notes.forEach((note) => {
     const li = document.createElement('li');
-    // Display title and formatted modified date
-    li.textContent = `${note.title} (${formatDate(note.modifiedTime)})`;
+    // Set a data attribute to identify the note
+    li.setAttribute('data-note-id', note.id);
+
+    // Display the displayTitle and formatted modified date
+    li.textContent = `${note.displayTitle || note.title} (${formatDate(note.modifiedTime)})`;
     li.onclick = () => {
       openNote(note.id);
       // Remove 'active' class from all list items
@@ -315,6 +379,53 @@ function loadNotes() {
   console.log('Notes displayed in sidebar.');
 }
 
+// Function to delete the currently selected note
+function deleteNote() {
+  if (currentNoteId === null) {
+    alert('No note selected to delete.');
+    return;
+  }
+
+  const note = notes.find((n) => n.id === currentNoteId);
+  if (!note) {
+    alert('Selected note not found.');
+    return;
+  }
+
+  if (confirm(`Are you sure you want to delete this note? This action cannot be undone.`)) {
+    window.electronAPI.deleteNoteFile(notesDirectory, note).then((success) => {
+      if (success) {
+        alert('Note deleted successfully!');
+        // Remove the note from the notes array
+        notes = notes.filter((n) => n.id !== currentNoteId);
+        // Clear the editor and reset currentNoteId
+        editor.innerHTML = '';
+        currentNoteId = null;
+        isNewNote = false;
+        // Reload the notes list
+        loadNotes();
+      } else {
+        alert('Failed to delete note.');
+      }
+    });
+  }
+}
+
+// Helper function to check if a URL is from a social media platform
+function isPrivatePostUrl(url) {
+  const socialMediaDomains = ['instagram.com', 'threads.net', 'x.com', 'snapchat.com'];
+  return socialMediaDomains.some((domain) => url.includes(domain));
+}
+
+// Helper function to get the platform name from the URL
+function getPlatformName(url) {
+  if (url.includes('instagram.com')) return 'Instagram';
+  if (url.includes('threads.net')) return 'Threads';
+  if (url.includes('x.com')) return 'X';
+  if (url.includes('snapchat.com')) return 'Snapchat';
+  return 'Social Media';
+}
+
 // Helper function to format the date
 function formatDate(date) {
   const d = new Date(date);
@@ -324,6 +435,10 @@ function formatDate(date) {
 // Open a note in the editor
 function openNote(id) {
   const note = notes.find((n) => n.id === id);
+  if (!note) {
+    alert('Note not found.');
+    return;
+  }
   currentNoteId = id;
   isNewNote = false; // Reset the new note flag
 
@@ -335,37 +450,42 @@ function openNote(id) {
 }
 
 // Save the current note
-function saveNote() {
+async function saveNote() {
   if (isNewNote) {
-    // Save as a new note
+    // For new notes, prompt the user for a title
     const noteTitle = prompt('Enter a title for your new note:');
-    if (noteTitle) {
-      const newNote = {
-        id: notes.length + 1, // Temporary ID, will be reset after loading notes
-        title: noteTitle,
-        content: editor.innerHTML,
-        extension: '.txt',
-        modifiedTime: new Date(),
-      };
-
-      // Save the note to the file system
-      window.electronAPI.saveNewNoteToFile(notesDirectory, newNote).then((success) => {
-        if (success) {
-          alert('New note saved successfully!');
-          isNewNote = false;
-          currentNoteId = null;
-          // Reload notes to update the list and IDs
-          loadNotesFromDirectory();
-        } else {
-          alert('Failed to save new note.');
-        }
-      });
-    } else {
+    if (!noteTitle) {
       alert('Note title cannot be empty.');
+      return;
     }
+
+    const newNote = {
+      id: notes.length + 1, // Temporary ID, will be reset after loading notes
+      title: noteTitle,
+      content: editor.innerHTML,
+      extension: '.txt',
+      modifiedTime: new Date(),
+    };
+
+    // Save the note to the file system
+    window.electronAPI.saveNewNoteToFile(notesDirectory, newNote).then((success) => {
+      if (success) {
+        alert('New note saved successfully!');
+        isNewNote = false;
+        currentNoteId = null;
+        // Reload notes to update the list and IDs
+        loadNotesFromDirectory();
+      } else {
+        alert('Failed to save new note.');
+      }
+    });
   } else if (currentNoteId !== null) {
     // Save existing note
     const note = notes.find((n) => n.id === currentNoteId);
+    if (!note) {
+      alert('Note not found.');
+      return;
+    }
 
     // Get content from the editor
     const newContent = editor.innerHTML;
@@ -388,29 +508,29 @@ function saveNote() {
   }
 }
 
-// Delete the current note
-function deleteNote() {
-  if (currentNoteId !== null) {
-    const note = notes.find((n) => n.id === currentNoteId);
-    if (confirm(`Are you sure you want to delete this note? This action cannot be undone.`)) {
-      // Remove the note from the array
-      notes = notes.filter((n) => n.id !== currentNoteId);
+// Function to extract URLs from HTML content
+function extractUrls(htmlContent) {
+  const urls = [];
 
-      // Delete the file
-      window.electronAPI.deleteNoteFile(notesDirectory, note).then((success) => {
-        if (success) {
-          alert('Note deleted successfully!');
-          currentNoteId = null;
-          editor.innerHTML = '';
-          loadNotesFromDirectory();
-        } else {
-          alert('Failed to delete note.');
-        }
-      });
-    }
-  } else {
-    alert('No note selected.');
+  // Extract URLs from <a> tags
+  const div = document.createElement('div');
+  div.innerHTML = htmlContent;
+  const anchors = div.getElementsByTagName('a');
+  for (let anchor of anchors) {
+    urls.push(anchor.href);
   }
+
+  // Remove HTML tags to get the plain text
+  const textContent = div.textContent || div.innerText || '';
+
+  // Regular expression to match URLs in plain text
+  const urlRegex = /((https?|ftp):\/\/[^\s]+)/gi;
+  const textUrls = textContent.match(urlRegex) || [];
+
+  // Combine and remove duplicates
+  const allUrls = [...new Set([...urls, ...textUrls])];
+
+  return allUrls;
 }
 
 // Initialize the app

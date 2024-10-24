@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveNewNoteToFile: (directoryPath, note) => ipcRenderer.invoke('save-new-note-to-file', directoryPath, note),
   deleteNoteFile: (directoryPath, note) => ipcRenderer.invoke('delete-note-file', directoryPath, note),
   openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
+  fetchUrlMetadata: (url) => ipcRenderer.invoke('fetch-url-metadata', url), // Added this line
 });

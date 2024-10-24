@@ -30,6 +30,13 @@
   "license": "MIT",
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
-    "electron-store": "^10.0.0"
+    "electron-store": "^10.0.0",
+    "metascraper": "^5.45.25",
+    "metascraper-instagram": "^5.45.25",
+    "metascraper-title": "^5.45.25",
+    "metascraper-twitter": "^5.45.6",
+    "metascraper-url": "^5.45.25",
+    "metascraper-youtube": "^5.45.25",
+    "node-fetch": "^3.3.2"
   }
 }
