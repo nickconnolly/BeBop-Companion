@@ -432,7 +432,7 @@ function formatDate(date) {
   return d.toLocaleString();
 }
 
-// Open a note in the editor
+// Modify the openNote function to embed YouTube links when loading note content
 function openNote(id) {
   const note = notes.find((n) => n.id === id);
   if (!note) {
@@ -442,10 +442,10 @@ function openNote(id) {
   currentNoteId = id;
   isNewNote = false; // Reset the new note flag
 
-  // Set the editor content
-  editor.innerHTML = note.content;
+  // Set the editor content and embed YouTube links
+  editor.innerHTML = embedYouTubeLinks(note.content);
 
-  // Parse content to handle links, emails, and '--'
+  // Parse content to handle other links, emails, and '--'
   parseContent();
 }
 
@@ -506,6 +506,18 @@ async function saveNote() {
   } else {
     alert('No note selected or new note created.');
   }
+}
+
+// Add this function to detect YouTube URLs and replace them with an embedded player
+function embedYouTubeLinks(content) {
+  // Regex to match YouTube URLs
+  const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([^\s&]+)/g;
+
+  return content.replace(youtubeRegex, (match, p1, videoId) => {
+    return `<div class="youtube-embed">
+              <iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+            </div>`;
+  });
 }
 
 // Function to extract URLs from HTML content

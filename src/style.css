@@ -126,15 +126,13 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Delete Button */
-#delete-button {
-  padding: 5px 10px;
-  background-color: #e74c3c; /* Red color */
-  color: white;
-  border: none;
-  cursor: pointer;
+
+.youtube-embed {
+  margin: 10px 0;
+  text-align: center;
 }
 
-#delete-button:hover {
-  background-color: #c0392b; /* Darker red on hover */
+.youtube-embed iframe {
+  max-width: 100%;
+  height: auto;
 }

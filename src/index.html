@@ -3,47 +3,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BeBop Companion</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Combined Top Bar -->
   <div id="top-bar">
-    <!-- Left side of the top bar -->
     <div id="top-bar-left">
       <button id="settings-button" onclick="openSettings()">Select a folder</button>
       <button id="new-note-button" onclick="newNote()">New Note</button>
     </div>
-    <!-- Right side of the top bar -->
     <div id="top-bar-right">
       <button id="delete-button" onclick="deleteNote()">Delete</button>
       <button id="save-button" onclick="saveNote()">Save</button>
     </div>
   </div>
 
-  <!-- Main Container -->
   <div id="main-container">
-    <!-- Sidebar -->
     <div id="sidebar">
-      <ul id="note-list">
-        <!-- Note items will be populated here -->
-      </ul>
+      <ul id="note-list"></ul>
     </div>
-
-    <!-- Vertical Separator -->
     <div id="vertical-separator"></div>
-
-    <!-- Content Area -->
     <div id="content-area">
-      <!-- Editor Container -->
       <div id="editor-container">
-        <!-- Contenteditable Div for editing text files -->
         <div id="editor" contenteditable="true" data-placeholder="Start writing your note..."></div>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="renderer.js"></script>
 </body>
 </html>
