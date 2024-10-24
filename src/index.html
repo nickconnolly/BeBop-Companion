@@ -1,0 +1,45 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Text Note Viewer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Settings Button -->
+  <div id="settings-container">
+    <button id="settings-button" onclick="openSettings()">Choose a Folder</button>
+  </div>
+
+  <!-- Main Container -->
+  <div id="main-container">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <ul id="note-list">
+        <!-- Note items will be populated here -->
+      </ul>
+    </div>
+
+    <!-- Vertical Separator -->
+    <div id="vertical-separator"></div>
+
+    <!-- Content Area -->
+    <div id="content-area">
+      <!-- Toolbar -->
+      <div id="toolbar">
+        <button onclick="saveNote()">Save</button>
+      </div>
+
+      <!-- Editor Container -->
+      <div id="editor-container">
+        <!-- Simple Textarea for editing text files -->
+        <textarea id="editor" placeholder="Start writing your note..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="renderer.js"></script>
+</body>
+</html>
