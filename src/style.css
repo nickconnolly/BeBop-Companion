@@ -3,7 +3,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #fff8dc; /* Light yellow background */
+  background-color: #fff8dc;
 }
 
 /* Top Bar */
@@ -11,9 +11,8 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background-color: #fdc554; /* Yellow background similar to the Bebop top bar */
-  color: #333; /* Darker text for contrast */
-  border-bottom: 1px solid #e6a400; /* Slightly darker yellow border */
+  background-color: #fdc554;
+  color: #333;
 }
 
 #top-bar-left,
@@ -24,29 +23,45 @@ body {
 
 #top-bar button {
   margin-left: 10px;
-  background-color: #fdc554; /* Match the top bar background */
+  background-color: #fdc554;
   border: none;
-  color: #333; /* Darker text for contrast */
+  color: #333;
   font-weight: bold;
   padding: 5px 10px;
-  border-radius: 5px; /* Rounded corners */
+  border-radius: 5px;
   cursor: pointer;
 }
 
 #top-bar button:hover {
-  background-color: #e6a400; /* Slightly darker yellow on hover */
+  background-color: #e6a400;
+}
+
+/* Search Bar */
+#search-bar {
+  padding: 10px;
+  background-color: #fdc554;
+  border-bottom: 1px solid #e6a400;
+}
+
+#search-input {
+  width: 240px;
+  padding: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+  border: 1px solid #e6a400;
+  border-radius: 5px;
 }
 
 /* Main Container */
 #main-container {
   display: flex;
-  height: calc(100vh - 50px); /* Adjust height considering the top bar */
+  height: calc(100vh - 110px); /* Adjust height considering the top bar and search bar */
 }
 
 /* Sidebar */
 #sidebar {
   width: 250px;
-  background-color: #fff8dc; /* Light yellow background to match the theme */
+  background-color: #fff8dc;
   border-right: 1px solid #e6a400;
   overflow-y: auto;
 }
@@ -61,7 +76,7 @@ body {
   padding: 15px;
   cursor: pointer;
   border-bottom: 1px solid #e6a400;
-  background-color: #fff8dc; /* Light yellow background */
+  background-color: #fff8dc;
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
@@ -69,17 +84,17 @@ body {
 }
 
 #note-list li:hover {
-  background-color: #fde4a3; /* Lighter yellow on hover */
+  background-color: #fde4a3;
 }
 
 #note-list li.active {
-  background-color: #fdc554; /* Highlight active note with the yellow theme */
+  background-color: #fdc554;
 }
 
 /* Vertical Separator */
 #vertical-separator {
   width: 1px;
-  background-color: #e6a400; /* Match the border color */
+  background-color: #e6a400;
   cursor: col-resize;
 }
 
@@ -104,9 +119,8 @@ body {
   border: none;
   outline: none;
   font-size: 16px;
-  font-family: Arial, sans-serif;
-  background-color: #ffffff; /* Match the overall yellow theme */
-  color: #333; /* Darker text for readability */
+  background-color: #ffffff;
+  color: #333;
   overflow-y: auto;
 }
 
@@ -118,23 +132,5 @@ body {
 #editor a {
   color: blue;
   text-decoration: underline;
-  cursor: pointer; /* Show pointer cursor over links */
-}
-
-#link-popup {
-  /* Additional styling if desired */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-/* Delete Button */
-#delete-button {
-  padding: 5px 10px;
-  background-color: #e74c3c; /* Red color */
-  color: white;
-  border: none;
   cursor: pointer;
-}
-
-#delete-button:hover {
-  background-color: #c0392b; /* Darker red on hover */
 }

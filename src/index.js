@@ -177,24 +177,33 @@ let store; // We'll assign this after dynamic import
       shell.openExternal(url);
     });
 
-    // Fetch metadata for a URL
+    // Fetch metadata for a URL with caching
     ipcMain.handle('fetch-url-metadata', async (event, url) => {
       console.log('IPC: fetch-url-metadata called with URL:', url);
       try {
+        // Use the URL as the cache key
+        const cacheKey = `metadataCache.${url}`;
+        // Check if the metadata is in the cache
+        const cachedMetadata = store.get(cacheKey);
+        if (cachedMetadata) {
+          console.log(`Metadata for URL ${url} loaded from cache.`);
+          return cachedMetadata;
+        }
+
+        // Metadata not in cache, fetch it
         const response = await fetch(url);
         const html = await response.text();
         const metadata = await metascraperInstance({ html, url });
 
         console.log('Metadata fetched:', metadata);
 
-        if (metadata.title) {
-          return { title: metadata.title };
-        } else {
-          return { title: null };
-        }
+        // Store in cache
+        store.set(cacheKey, metadata);
+
+        return metadata;
       } catch (error) {
         console.error('Error fetching metadata:', error);
-        return { title: null };
+        return {};
       }
     });
 
