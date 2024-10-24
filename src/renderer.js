@@ -303,12 +303,10 @@ function fetchMetadataForNotes() {
 // Function to fetch metadata for a single note
 async function fetchMetadataForNote(note) {
   try {
-    console.log(`Fetching metadata for note ${note.id}`);
     // Extract URLs from the note content
     const urls = extractUrls(note.content);
 
     if (urls.length > 0) {
-      console.log(`Note ${note.id} has URLs:`, urls);
       // Fetch metadata for the first URL
       const metadata = await window.electronAPI.fetchUrlMetadata(urls[0]);
 
@@ -377,6 +375,7 @@ function loadNotes() {
     noteList.appendChild(li);
   });
   console.log('Notes displayed in sidebar.');
+  console.log(`Fetching metadata for notes`);
 }
 
 // Function to delete the currently selected note
