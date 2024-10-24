@@ -1,5 +1,5 @@
 // index.js
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -73,14 +73,25 @@ let store; // We'll assign this after dynamic import
         files.forEach((file, index) => {
           const ext = path.extname(file);
           if (ext === '.txt') {
-            const content = fs.readFileSync(path.join(directoryPath, file), 'utf8');
+            const filePath = path.join(directoryPath, file);
+            const content = fs.readFileSync(filePath, 'utf8');
+            const stats = fs.statSync(filePath);
             notes.push({
               id: index + 1,
               title: path.basename(file, ext),
               content: content,
               extension: ext, // Store the file extension
+              modifiedTime: stats.mtime, // Store the modified time
             });
           }
+        });
+
+        // Sort the notes by modified time, newest first
+        notes.sort((a, b) => b.modifiedTime - a.modifiedTime);
+
+        // Reassign IDs after sorting
+        notes.forEach((note, index) => {
+          note.id = index + 1;
         });
 
         console.log('Notes read from directory:', notes);
@@ -103,6 +114,47 @@ let store; // We'll assign this after dynamic import
         console.error('Error saving note:', error);
         return false;
       }
+    });
+
+    // Save a new note to file
+    ipcMain.handle('save-new-note-to-file', async (event, directoryPath, note) => {
+      console.log('IPC: save-new-note-to-file called with note:', note);
+      try {
+        const filePath = path.join(directoryPath, note.title + note.extension);
+
+        // Check if a file with the same name already exists
+        if (fs.existsSync(filePath)) {
+          console.error('File already exists:', filePath);
+          return false;
+        }
+
+        fs.writeFileSync(filePath, note.content, 'utf8');
+        console.log('New note saved to file:', filePath);
+        return true;
+      } catch (error) {
+        console.error('Error saving new note:', error);
+        return false;
+      }
+    });
+
+    // Delete a note file
+    ipcMain.handle('delete-note-file', async (event, directoryPath, note) => {
+      console.log('IPC: delete-note-file called with note:', note);
+      try {
+        const filePath = path.join(directoryPath, note.title + note.extension);
+        fs.unlinkSync(filePath);
+        console.log('Note deleted from file system:', filePath);
+        return true;
+      } catch (error) {
+        console.error('Error deleting note:', error);
+        return false;
+      }
+    });
+
+    // Open external link
+    ipcMain.handle('open-external-link', async (event, url) => {
+      console.log('IPC: open-external-link called with URL:', url);
+      shell.openExternal(url);
     });
 
     // Re-create a window in the app when the dock icon is clicked (macOS).
